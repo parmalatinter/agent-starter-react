@@ -80,6 +80,7 @@ function createParticipantToken(
     canSubscribe: true,
   };
   at.addGrant(grant);
+  at.metadata = JSON.stringify({ userid: 'testId', userName: 'testName' });
 
   if (agentName) {
     at.roomConfig = new RoomConfiguration({
