@@ -34,8 +34,8 @@ export async function POST(req: Request) {
     const agentName: string = body?.room_config?.agents?.[0]?.agent_name;
 
     // Generate participant token
-    const participantName = 'user';
-    const participantIdentity = `voice_assistant_user_${Math.floor(Math.random() * 10_000)}`;
+    const participantName = 'わたし';
+    const participantIdentity = `xxxx_${Math.floor(Math.random() * 10_000)}`;
     const roomName = `voice_assistant_room_${Math.floor(Math.random() * 10_000)}`;
 
     const participantToken = await createParticipantToken(
@@ -86,7 +86,10 @@ function createParticipantToken(
     lastName: 'testLast',
     firstNameKana: 'テストメイ',
     lastNameKana: 'テストミョウジ',
+    companyId: '1f33c346-b850-4386-ad2c-d2dc8197957d', // ローカル会社ID
+    // companyId: '65269f7b-24d5-4f04-9989-4e1b8b31e106', // 本番会社ID
   });
+  console.log('Generated token with metadata:', at.metadata);
 
   if (agentName) {
     at.roomConfig = new RoomConfiguration({
