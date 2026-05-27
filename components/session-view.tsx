@@ -43,6 +43,20 @@ export const SessionView = ({
     enabled: process.env.NODE_END !== 'production',
   });
 
+  useEffect(() => {
+    room.registerRpcMethod('interview_completed', async (data) => {
+      console.log('interview_completed RPC received:', {
+        callerIdentity: data.callerIdentity,
+        payload: data.payload,
+      });
+      return '{}';
+    });
+
+    return () => {
+      room.unregisterRpcMethod('interview_completed');
+    };
+  }, [room]);
+
   async function handleSendMessage(message: string) {
     await send(message);
   }
