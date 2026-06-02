@@ -20,7 +20,7 @@ function formatExpiry(isoDate: string): string {
 }
 
 const REASON_MESSAGES: Record<string, string> = {
-  'token not found': 'トークンが見つかりません',
+  'token not found': 'トークンが不正です',
   'company not set': '会社情報が設定されていません',
   'company not found': '会社情報が見つかりません',
   'already finished': 'この面接は既に終了しています',
@@ -34,9 +34,7 @@ export const Welcome = ({
   tokenValidation,
   ref,
 }: React.ComponentProps<'div'> & WelcomeProps) => {
-  const isStartDisabled =
-    tokenValidation.status === 'loading' ||
-    (tokenValidation.status === 'success' && !tokenValidation.data.valid);
+  const isStartDisabled = !(tokenValidation.status === 'success' && tokenValidation.data.valid);
 
   const userInfo =
     tokenValidation.status === 'success' && tokenValidation.data.company_name
