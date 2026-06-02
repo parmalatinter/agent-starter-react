@@ -70,9 +70,7 @@ export const Welcome = ({
 
       <div className="flex flex-col items-center gap-3">
         {tokenValidation.status === 'idle' && (
-          <p className="text-fgSerious max-w-prose leading-6 font-medium">
-            不正なアクセスです
-          </p>
+          <p className="text-fgSerious max-w-prose leading-6 font-medium">不正なアクセスです</p>
         )}
 
         {tokenValidation.status === 'loading' && (
