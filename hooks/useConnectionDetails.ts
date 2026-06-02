@@ -49,7 +49,7 @@ export default function useConnectionDetails(appConfig: AppConfig, token?: strin
 
     setConnectionDetails(data);
     return data;
-  }, []);
+  }, [token, appConfig.sandboxId, appConfig.agentName]);
 
   useEffect(() => {
     fetchConnectionDetails();
