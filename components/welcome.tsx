@@ -35,6 +35,7 @@ export const Welcome = ({
   ref,
 }: React.ComponentProps<'div'> & WelcomeProps) => {
   const isStartDisabled =
+    tokenValidation.status === 'idle' ||
     tokenValidation.status === 'loading' ||
     tokenValidation.status === 'error' ||
     (tokenValidation.status === 'success' && !tokenValidation.data.valid);
