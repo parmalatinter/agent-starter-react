@@ -35,13 +35,18 @@ export function useTokenValidation(token: string | null): {
   const retryCountRef = useRef(0);
   // リトライ中かどうか（trueならloading表示しない）
   const isRetryingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const doFetch = useCallback((token: string) => {
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     if (!isRetryingRef.current) {
       setState({ status: 'loading' });
     }
 
-    fetch(`${VALIDATE_URL}?token=${encodeURIComponent(token)}`)
+    fetch(`${VALIDATE_URL}?token=${encodeURIComponent(token)}`, { signal: controller.signal })
       .then((res) => {
         if (!res.ok) {
           return res.json().then((body: { error?: string }) => {
@@ -61,6 +66,7 @@ export function useTokenValidation(token: string | null): {
         }
       })
       .catch((err: Error) => {
+        if (err.name === 'AbortError') return;
         setState({ status: 'error', message: err.message });
         retryCountRef.current = 0;
         isRetryingRef.current = false;
@@ -69,6 +75,7 @@ export function useTokenValidation(token: string | null): {
 
   useEffect(() => {
     if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    if (abortControllerRef.current) abortControllerRef.current.abort();
     retryCountRef.current = 0;
     isRetryingRef.current = false;
 
@@ -82,6 +89,7 @@ export function useTokenValidation(token: string | null): {
   useEffect(() => {
     return () => {
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      if (abortControllerRef.current) abortControllerRef.current.abort();
     };
   }, []);
 

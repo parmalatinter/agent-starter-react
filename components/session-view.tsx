@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   type AgentState,
@@ -40,6 +40,8 @@ export const SessionView = ({
   const room = useRoomContext();
   const [remainingSec, setRemainingSec] = useState<number | null>(null);
   const [interviewMessage, setInterviewMessage] = useState<string | null>(null);
+  const interviewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const silenceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useDebugMode({
     enabled: process.env.NODE_END !== 'production',
@@ -51,14 +53,20 @@ export const SessionView = ({
         callerIdentity: data.callerIdentity,
         payload: data.payload,
       });
-      const parsed = JSON.parse(data.payload) as { message: string };
-      setInterviewMessage(parsed.message);
-      setTimeout(() => setInterviewMessage(null), 4000);
+      try {
+        const parsed = JSON.parse(data.payload) as { message: string };
+        setInterviewMessage(parsed.message);
+        if (interviewTimeoutRef.current) clearTimeout(interviewTimeoutRef.current);
+        interviewTimeoutRef.current = setTimeout(() => setInterviewMessage(null), 4000);
+      } catch (error) {
+        console.error('Failed to parse interview_completed payload:', error);
+      }
       return '{}';
     });
 
     return () => {
       room.unregisterRpcMethod('interview_completed');
+      if (interviewTimeoutRef.current) clearTimeout(interviewTimeoutRef.current);
     };
   }, [room]);
 
@@ -68,14 +76,20 @@ export const SessionView = ({
         callerIdentity: data.callerIdentity,
         payload: data.payload,
       });
-      const parsed = JSON.parse(data.payload) as { remaining_sec: number };
-      setRemainingSec(parsed.remaining_sec);
-      setTimeout(() => setRemainingSec(null), 4000);
+      try {
+        const parsed = JSON.parse(data.payload) as { remaining_sec: number };
+        setRemainingSec(parsed.remaining_sec);
+        if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
+        silenceTimeoutRef.current = setTimeout(() => setRemainingSec(null), 4000);
+      } catch (error) {
+        console.error('Failed to parse silence_alert payload:', error);
+      }
       return '{}';
     });
 
     return () => {
       room.unregisterRpcMethod('silence_alert');
+      if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
     };
   }, [room]);
 

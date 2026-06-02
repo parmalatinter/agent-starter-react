@@ -34,7 +34,10 @@ export const Welcome = ({
   tokenValidation,
   ref,
 }: React.ComponentProps<'div'> & WelcomeProps) => {
-  const isStartDisabled = !(tokenValidation.status === 'success' && tokenValidation.data.valid);
+  const isStartDisabled =
+    tokenValidation.status === 'loading' ||
+    tokenValidation.status === 'error' ||
+    (tokenValidation.status === 'success' && !tokenValidation.data.valid);
 
   const userInfo =
     tokenValidation.status === 'success' && tokenValidation.data.company_name

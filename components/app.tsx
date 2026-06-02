@@ -22,15 +22,16 @@ interface AppProps {
 export function App({ appConfig }: AppProps) {
   const room = useMemo(() => new Room(), []);
   const [sessionStarted, setSessionStarted] = useState(false);
-  const { refreshConnectionDetails, existingOrRefreshConnectionDetails } =
-    useConnectionDetails(appConfig);
-
   const [token, setToken] = useState<string | null>(null);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setToken(params.get('token'));
   }, []);
   const { state: tokenValidation, retryUntilInvalid } = useTokenValidation(token);
+  const { refreshConnectionDetails, existingOrRefreshConnectionDetails } = useConnectionDetails(
+    appConfig,
+    token
+  );
 
   useEffect(() => {
     const onDisconnected = () => {

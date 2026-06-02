@@ -5,7 +5,7 @@ import { AppConfig } from '@/lib/types';
 
 const ONE_MINUTE_IN_MILLISECONDS = 60 * 1000;
 
-export default function useConnectionDetails(appConfig: AppConfig) {
+export default function useConnectionDetails(appConfig: AppConfig, token?: string | null) {
   // Generate room connection details, including:
   //   - A random Room name
   //   - A random Participant name
@@ -38,6 +38,7 @@ export default function useConnectionDetails(appConfig: AppConfig) {
                 agents: [{ agent_name: appConfig.agentName }],
               }
             : undefined,
+          token: token ?? undefined,
         }),
       });
       data = await res.json();
