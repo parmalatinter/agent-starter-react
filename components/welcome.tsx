@@ -70,8 +70,8 @@ export const Welcome = ({
 
       <div className="flex flex-col items-center gap-3">
         {tokenValidation.status === 'idle' && (
-          <p className="text-foreground max-w-prose leading-6 font-medium">
-            Chat live with your voice AI agent
+          <p className="text-fgSerious max-w-prose leading-6 font-medium">
+            不正なアクセスです
           </p>
         )}
 
