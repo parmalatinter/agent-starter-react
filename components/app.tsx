@@ -9,6 +9,7 @@ import { SessionView } from '@/components/session-view';
 import { Toaster } from '@/components/ui/sonner';
 import { Welcome } from '@/components/welcome';
 import useConnectionDetails from '@/hooks/useConnectionDetails';
+import { useTokenValidation } from '@/hooks/useTokenValidation';
 import type { AppConfig } from '@/lib/types';
 
 const MotionWelcome = motion.create(Welcome);
@@ -24,10 +25,18 @@ export function App({ appConfig }: AppProps) {
   const { refreshConnectionDetails, existingOrRefreshConnectionDetails } =
     useConnectionDetails(appConfig);
 
+  const [token, setToken] = useState<string | null>(null);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setToken(params.get('token'));
+  }, []);
+  const { state: tokenValidation, retryUntilInvalid } = useTokenValidation(token);
+
   useEffect(() => {
     const onDisconnected = () => {
       setSessionStarted(false);
       refreshConnectionDetails();
+      retryUntilInvalid();
     };
     const onMediaDevicesError = (error: Error) => {
       toastAlert({
@@ -41,7 +50,7 @@ export function App({ appConfig }: AppProps) {
       room.off(RoomEvent.Disconnected, onDisconnected);
       room.off(RoomEvent.MediaDevicesError, onMediaDevicesError);
     };
-  }, [room, refreshConnectionDetails]);
+  }, [room, refreshConnectionDetails, retryUntilInvalid]);
 
   useEffect(() => {
     let aborted = false;
@@ -84,6 +93,7 @@ export function App({ appConfig }: AppProps) {
         startButtonText={startButtonText}
         onStartCall={() => setSessionStarted(true)}
         disabled={sessionStarted}
+        tokenValidation={tokenValidation}
         initial={{ opacity: 1 }}
         animate={{ opacity: sessionStarted ? 0 : 1 }}
         transition={{ duration: 0.5, ease: 'linear', delay: sessionStarted ? 0 : 0.5 }}
