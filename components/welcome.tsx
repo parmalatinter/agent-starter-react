@@ -20,11 +20,11 @@ function formatExpiry(isoDate: string): string {
 }
 
 const REASON_MESSAGES: Record<string, string> = {
-  'token not found': 'トークンが不正です',
-  'company not set': '会社情報が設定されていません',
-  'company not found': '会社情報が見つかりません',
-  'already finished': 'この面接は既に終了しています',
-  'token expired': 'このトークンの有効期限が切れています',
+  'token not found': 'トークンが不正です。',
+  'company not set': '会社情報が設定されていません。',
+  'company not found': '会社情報が見つかりません。',
+  'already finished': 'この面接は既に終了しています。',
+  'token expired': 'このトークンの有効期限が切れています。',
 };
 
 export const Welcome = ({
