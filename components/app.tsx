@@ -17,16 +17,12 @@ const MotionSessionView = motion.create(SessionView);
 
 interface AppProps {
   appConfig: AppConfig;
+  token: string | null;
 }
 
-export function App({ appConfig }: AppProps) {
+export function App({ appConfig, token }: AppProps) {
   const room = useMemo(() => new Room(), []);
   const [sessionStarted, setSessionStarted] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    setToken(params.get('token'));
-  }, []);
   const { state: tokenValidation, retryUntilInvalid } = useTokenValidation(token);
   const { refreshConnectionDetails, existingOrRefreshConnectionDetails } = useConnectionDetails(
     appConfig,
