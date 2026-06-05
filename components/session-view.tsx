@@ -185,7 +185,7 @@ export const SessionView = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="fixed top-36 right-0 left-0 z-50 flex justify-center"
+            className="fixed top-36 right-0 left-0 z-[60] flex justify-center"
           >
             <div className="rounded-full bg-black/70 px-5 py-2 text-sm font-semibold text-white backdrop-blur-sm">
               {interviewMessage}
@@ -202,7 +202,7 @@ export const SessionView = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="fixed top-36 right-0 left-0 z-50 flex justify-center"
+            className="fixed top-36 right-0 left-0 z-[60] flex justify-center"
           >
             <div className="rounded-full bg-black/70 px-5 py-2 text-sm font-semibold text-white backdrop-blur-sm">
               残り {remainingSec} 秒
