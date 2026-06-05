@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   type AgentState,
@@ -38,6 +38,10 @@ export const SessionView = ({
   const [chatOpen, setChatOpen] = useState(false);
   const { messages, send } = useChatAndTranscription();
   const room = useRoomContext();
+  const [remainingSec, setRemainingSec] = useState<number | null>(null);
+  const [interviewMessage, setInterviewMessage] = useState<string | null>(null);
+  const interviewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const silenceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useDebugMode({
     enabled: process.env.NODE_END !== 'production',
@@ -49,11 +53,43 @@ export const SessionView = ({
         callerIdentity: data.callerIdentity,
         payload: data.payload,
       });
+      try {
+        const parsed = JSON.parse(data.payload) as { message: string };
+        setInterviewMessage(parsed.message);
+        if (interviewTimeoutRef.current) clearTimeout(interviewTimeoutRef.current);
+        interviewTimeoutRef.current = setTimeout(() => setInterviewMessage(null), 4000);
+      } catch (error) {
+        console.error('Failed to parse interview_completed payload:', error);
+      }
       return '{}';
     });
 
     return () => {
       room.unregisterRpcMethod('interview_completed');
+      if (interviewTimeoutRef.current) clearTimeout(interviewTimeoutRef.current);
+    };
+  }, [room]);
+
+  useEffect(() => {
+    room.registerRpcMethod('silence_alert', async (data) => {
+      console.log('silence_alert RPC received:', {
+        callerIdentity: data.callerIdentity,
+        payload: data.payload,
+      });
+      try {
+        const parsed = JSON.parse(data.payload) as { remaining_sec: number };
+        setRemainingSec(parsed.remaining_sec);
+        if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
+        silenceTimeoutRef.current = setTimeout(() => setRemainingSec(null), 4000);
+      } catch (error) {
+        console.error('Failed to parse silence_alert payload:', error);
+      }
+      return '{}';
+    });
+
+    return () => {
+      room.unregisterRpcMethod('silence_alert');
+      if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
     };
   }, [room]);
 
@@ -140,6 +176,40 @@ export const SessionView = ({
         {/* skrim */}
         <div className="from-background absolute bottom-0 left-0 h-12 w-full translate-y-full bg-gradient-to-b to-transparent" />
       </div>
+
+      <AnimatePresence>
+        {interviewMessage !== null && (
+          <motion.div
+            key="interview-message"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="fixed top-36 right-0 left-0 z-[60] flex justify-center"
+          >
+            <div className="rounded-full bg-black/70 px-5 py-2 text-sm font-semibold text-white backdrop-blur-sm">
+              {interviewMessage}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {remainingSec !== null && (
+          <motion.div
+            key="silence-alert"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="fixed top-36 right-0 left-0 z-[60] flex justify-center"
+          >
+            <div className="rounded-full bg-black/70 px-5 py-2 text-sm font-semibold text-white backdrop-blur-sm">
+              残り {remainingSec} 秒
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <MediaTiles chatOpen={chatOpen} />
 

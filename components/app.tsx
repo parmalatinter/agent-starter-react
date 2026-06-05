@@ -9,6 +9,7 @@ import { SessionView } from '@/components/session-view';
 import { Toaster } from '@/components/ui/sonner';
 import { Welcome } from '@/components/welcome';
 import useConnectionDetails from '@/hooks/useConnectionDetails';
+import { useTokenValidation } from '@/hooks/useTokenValidation';
 import type { AppConfig } from '@/lib/types';
 
 const MotionWelcome = motion.create(Welcome);
@@ -16,18 +17,23 @@ const MotionSessionView = motion.create(SessionView);
 
 interface AppProps {
   appConfig: AppConfig;
+  token: string | null;
 }
 
-export function App({ appConfig }: AppProps) {
+export function App({ appConfig, token }: AppProps) {
   const room = useMemo(() => new Room(), []);
   const [sessionStarted, setSessionStarted] = useState(false);
-  const { refreshConnectionDetails, existingOrRefreshConnectionDetails } =
-    useConnectionDetails(appConfig);
+  const { state: tokenValidation, retryUntilInvalid } = useTokenValidation(token);
+  const { refreshConnectionDetails, existingOrRefreshConnectionDetails } = useConnectionDetails(
+    appConfig,
+    token
+  );
 
   useEffect(() => {
     const onDisconnected = () => {
       setSessionStarted(false);
       refreshConnectionDetails();
+      retryUntilInvalid();
     };
     const onMediaDevicesError = (error: Error) => {
       toastAlert({
@@ -41,7 +47,7 @@ export function App({ appConfig }: AppProps) {
       room.off(RoomEvent.Disconnected, onDisconnected);
       room.off(RoomEvent.MediaDevicesError, onMediaDevicesError);
     };
-  }, [room, refreshConnectionDetails]);
+  }, [room, refreshConnectionDetails, retryUntilInvalid]);
 
   useEffect(() => {
     let aborted = false;
@@ -73,7 +79,12 @@ export function App({ appConfig }: AppProps) {
       aborted = true;
       room.disconnect();
     };
-  }, [room, sessionStarted, appConfig.isPreConnectBufferEnabled]);
+  }, [
+    room,
+    sessionStarted,
+    appConfig.isPreConnectBufferEnabled,
+    existingOrRefreshConnectionDetails,
+  ]);
 
   const { startButtonText } = appConfig;
 
@@ -84,6 +95,7 @@ export function App({ appConfig }: AppProps) {
         startButtonText={startButtonText}
         onStartCall={() => setSessionStarted(true)}
         disabled={sessionStarted}
+        tokenValidation={tokenValidation}
         initial={{ opacity: 1 }}
         animate={{ opacity: sessionStarted ? 0 : 1 }}
         transition={{ duration: 0.5, ease: 'linear', delay: sessionStarted ? 0 : 0.5 }}
